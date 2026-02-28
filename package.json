@@ -58,7 +58,7 @@
   },
   "sideEffects": false,
   "engines": {
-    "node": ">=14.17"
+    "node": ">=16"
   },
   "scripts": {
     "start": "nps",
