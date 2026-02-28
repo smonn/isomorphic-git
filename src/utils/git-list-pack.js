@@ -5,23 +5,24 @@ import pako from 'pako'
 
 import { InternalError } from '../errors/InternalError.js'
 import { StreamReader } from '../utils/StreamReader.js'
+import { decodeUTF8 } from '../utils/uint8array.js'
 
 export async function listpack(stream, onData) {
   const reader = new StreamReader(stream)
   let PACK = await reader.read(4)
-  PACK = PACK.toString('utf8')
+  PACK = decodeUTF8(PACK)
   if (PACK !== 'PACK') {
     throw new InternalError(`Invalid PACK header '${PACK}'`)
   }
 
-  let version = await reader.read(4)
-  version = version.readUInt32BE(0)
+  let versionBuf = await reader.read(4)
+  const version = new DataView(versionBuf.buffer, versionBuf.byteOffset, 4).getUint32(0, false)
   if (version !== 2) {
     throw new InternalError(`Invalid packfile version: ${version}`)
   }
 
-  let numObjects = await reader.read(4)
-  numObjects = numObjects.readUInt32BE(0)
+  let numObjectsBuf = await reader.read(4)
+  let numObjects = new DataView(numObjectsBuf.buffer, numObjectsBuf.byteOffset, 4).getUint32(0, false)
   // If (for some godforsaken reason) this is an empty packfile, abort now.
   if (numObjects < 1) return
 
@@ -91,7 +92,7 @@ async function parseHeader(reader) {
       shift += 7
       bytes.push(byte)
     } while (byte & 0b10000000)
-    reference = Buffer.from(bytes)
+    reference = new Uint8Array(bytes)
   }
   if (type === 7) {
     const buf = await reader.read(20)

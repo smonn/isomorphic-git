@@ -2,9 +2,9 @@ import { InternalError } from '../errors/InternalError.js'
 import { BufferCursor } from '../utils/BufferCursor.js'
 
 /**
- * @param {Buffer} delta
- * @param {Buffer} source
- * @returns {Buffer}
+ * @param {Uint8Array} delta
+ * @param {Uint8Array} source
+ * @returns {Uint8Array}
  */
 export function applyDelta(delta, source) {
   const reader = new BufferCursor(delta)
@@ -24,7 +24,7 @@ export function applyDelta(delta, source) {
     target = firstOp
   } else {
     // Otherwise, allocate a fresh buffer and slices
-    target = Buffer.alloc(targetSize)
+    target = new Uint8Array(targetSize)
     const writer = new BufferCursor(target)
     writer.copy(firstOp)
 

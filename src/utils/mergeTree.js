@@ -12,6 +12,7 @@ import { basename } from './basename.js'
 import { join } from './join.js'
 import { mergeFile } from './mergeFile.js'
 import { modified } from './modified.js'
+import { decodeUTF8, encodeUTF8 } from './uint8array.js'
 
 /**
  * Create a merged tree
@@ -362,7 +363,7 @@ async function mergeBlobs({
   if (base && (await base.type()) === 'blob') {
     baseMode = await base.mode()
     baseOid = await base.oid()
-    baseContent = Buffer.from(await base.content()).toString('utf8')
+    baseContent = decodeUTF8(await base.content())
   }
   const mode =
     baseMode === (await ours.mode()) ? await theirs.mode() : await ours.mode()
@@ -387,8 +388,8 @@ async function mergeBlobs({
     }
   }
   // if both sides made changes do a merge
-  const ourContent = Buffer.from(await ours.content()).toString('utf8')
-  const theirContent = Buffer.from(await theirs.content()).toString('utf8')
+  const ourContent = decodeUTF8(await ours.content())
+  const theirContent = decodeUTF8(await theirs.content())
   const { mergedText, cleanMerge } = await mergeDriver({
     branches: [baseName, ourName, theirName],
     contents: [baseContent, ourContent, theirContent],
@@ -398,7 +399,7 @@ async function mergeBlobs({
     fs,
     gitdir,
     type: 'blob',
-    object: Buffer.from(mergedText, 'utf8'),
+    object: encodeUTF8(mergedText),
     dryRun,
   })
 
