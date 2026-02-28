@@ -1,4 +1,5 @@
 import { GitPktLine } from '../models/GitPktLine.js'
+import { decodeUTF8 } from '../utils/uint8array.js'
 
 export async function parseUploadPackRequest(stream) {
   const read = GitPktLine.streamReader(stream)
@@ -15,7 +16,7 @@ export async function parseUploadPackRequest(stream) {
     const line = await read()
     if (line === true) break
     if (line === null) continue
-    const [key, value, ...rest] = line.toString('utf8').trim().split(' ')
+    const [key, value, ...rest] = decodeUTF8(line).trim().split(' ')
     if (!capabilities) capabilities = rest
     switch (key) {
       case 'want':

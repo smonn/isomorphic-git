@@ -1,5 +1,6 @@
 import { FIFO } from './FIFO.js'
 import { forAwait } from './forAwait.js'
+import { decodeUTF8 } from './uint8array.js'
 
 // Note: progress messages are designed to be written directly to the terminal,
 // so they are often sent with just a carriage return to overwrite the last line of output.
@@ -20,7 +21,7 @@ export function splitLines(input) {
   let tmp = ''
   ;(async () => {
     await forAwait(input, chunk => {
-      chunk = chunk.toString('utf8')
+      chunk = decodeUTF8(chunk)
       tmp += chunk
       while (true) {
         const i = findSplit(tmp)

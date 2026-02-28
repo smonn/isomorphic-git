@@ -1,4 +1,5 @@
 // @ts-check
+import { decodeUTF8 } from '../utils/uint8array.js'
 
 /**
  * @param {function} read
@@ -12,7 +13,7 @@ export async function parseCapabilitiesV2(read) {
     line = await read()
     if (line === true) break
     if (line === null) continue
-    line = line.toString('utf8').replace(/\n$/, '')
+    line = decodeUTF8(line).replace(/\n$/, '')
     const i = line.indexOf('=')
     if (i > -1) {
       const key = line.slice(0, i)

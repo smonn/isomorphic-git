@@ -2,6 +2,7 @@ import { EmptyServerResponseError } from '../errors/EmptyServerResponseError.js'
 import { ParseError } from '../errors/ParseError.js'
 import { GitPktLine } from '../models/GitPktLine.js'
 import { parseCapabilitiesV2 } from '../wire/parseCapabilitiesV2.js'
+import { decodeUTF8 } from '../utils/uint8array.js'
 
 export async function parseRefsAdResponse(stream, { service }) {
   const capabilities = new Set()
@@ -18,13 +19,13 @@ export async function parseRefsAdResponse(stream, { service }) {
   if (lineOne === true) throw new EmptyServerResponseError()
 
   // Handle protocol v2 responses (Bitbucket Server doesn't include a `# service=` line)
-  if (lineOne.includes('version 2')) {
+  if (decodeUTF8(lineOne).includes('version 2')) {
     return parseCapabilitiesV2(read)
   }
 
   // Clients MUST ignore an LF at the end of the line.
-  if (lineOne.toString('utf8').replace(/\n$/, '') !== `# service=${service}`) {
-    throw new ParseError(`# service=${service}\\n`, lineOne.toString('utf8'))
+  if (decodeUTF8(lineOne).replace(/\n$/, '') !== `# service=${service}`) {
+    throw new ParseError(`# service=${service}\\n`, decodeUTF8(lineOne))
   }
   let lineTwo = await read()
   // skip past any flushes
@@ -32,7 +33,7 @@ export async function parseRefsAdResponse(stream, { service }) {
   // In the edge case of a brand new repo, zero refs (and zero capabilities)
   // are returned.
   if (lineTwo === true) return { capabilities, refs, symrefs }
-  lineTwo = lineTwo.toString('utf8')
+  lineTwo = decodeUTF8(lineTwo)
 
   // Handle protocol v2 responses
   if (lineTwo.includes('version 2')) {
@@ -49,7 +50,7 @@ export async function parseRefsAdResponse(stream, { service }) {
       const line = await read()
       if (line === true) break
       if (line !== null) {
-        const [ref, name] = splitAndAssert(line.toString('utf8'), ' ', ' ')
+        const [ref, name] = splitAndAssert(decodeUTF8(line), ' ', ' ')
         refs.set(name, ref)
       }
     }
@@ -71,7 +72,7 @@ function splitAndAssert(line, sep, expected) {
   if (split.length !== 2) {
     throw new ParseError(
       `Two strings separated by '${expected}'`,
-      line.toString('utf8')
+      line
     )
   }
   return split

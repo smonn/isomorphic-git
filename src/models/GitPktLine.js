@@ -51,26 +51,27 @@ Examples (as C-style strings):
 */
 import { StreamReader } from '../utils/StreamReader.js'
 import { padHex } from '../utils/padHex.js'
+import { encodeUTF8, decodeUTF8, concatUint8Arrays } from '../utils/uint8array.js'
 
 // I'm really using this more as a namespace.
 // There's not a lot of "state" in a pkt-line
 
 export class GitPktLine {
   static flush() {
-    return Buffer.from('0000', 'utf8')
+    return encodeUTF8('0000')
   }
 
   static delim() {
-    return Buffer.from('0001', 'utf8')
+    return encodeUTF8('0001')
   }
 
   static encode(line) {
     if (typeof line === 'string') {
-      line = Buffer.from(line)
+      line = encodeUTF8(line)
     }
     const length = line.length + 4
     const hexlength = padHex(4, length)
-    return Buffer.concat([Buffer.from(hexlength, 'utf8'), line])
+    return concatUint8Arrays([encodeUTF8(hexlength), line])
   }
 
   static streamReader(stream) {
@@ -79,7 +80,7 @@ export class GitPktLine {
       try {
         let length = await reader.read(4)
         if (length == null) return true
-        length = parseInt(length.toString('utf8'), 16)
+        length = parseInt(decodeUTF8(length), 16)
         if (length === 0) return null
         if (length === 1) return null // delim packets
         const buffer = await reader.read(length - 4)

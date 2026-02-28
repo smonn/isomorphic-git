@@ -2,6 +2,7 @@ import '../typedefs.js'
 
 import { ParseError } from '../errors/ParseError.js'
 import { GitPktLine } from '../models/GitPktLine.js'
+import { decodeUTF8 } from '../utils/uint8array.js'
 
 export async function parseReceivePackResponse(packfile) {
   /** @type PushResult */
@@ -10,11 +11,11 @@ export async function parseReceivePackResponse(packfile) {
   const read = GitPktLine.streamReader(packfile)
   let line = await read()
   while (line !== true) {
-    if (line !== null) response += line.toString('utf8') + '\n'
+    if (line !== null) response += decodeUTF8(line) + '\n'
     line = await read()
   }
 
-  const lines = response.toString('utf8').split('\n')
+  const lines = response.split('\n')
   // We're expecting "unpack {unpack-result}"
   line = lines.shift()
   if (!line.startsWith('unpack ')) {

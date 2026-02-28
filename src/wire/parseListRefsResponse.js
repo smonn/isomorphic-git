@@ -1,4 +1,5 @@
 import { GitPktLine } from '../models/GitPktLine.js'
+import { decodeUTF8 } from '../utils/uint8array.js'
 
 /**
  * @typedef {Object} ServerRef - This object has the following schema:
@@ -20,7 +21,7 @@ export async function parseListRefsResponse(stream) {
     line = await read()
     if (line === true) break
     if (line === null) continue
-    line = line.toString('utf8').replace(/\n$/, '')
+    line = decodeUTF8(line).replace(/\n$/, '')
     const [oid, ref, ...attrs] = line.split(' ')
     const r = { ref, oid }
     for (const attr of attrs) {
