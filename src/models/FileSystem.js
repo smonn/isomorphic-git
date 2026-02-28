@@ -4,6 +4,7 @@ import { compareStrings } from '../utils/compareStrings.js'
 import { dirname } from '../utils/dirname.js'
 import { rmRecursive } from '../utils/rmRecursive.js'
 import { isPromiseLike } from '../utils/types.js'
+import { encodeUTF8, decodeUTF8 } from '../utils/uint8array.js'
 
 function isPromiseFs(fs) {
   const test = targetFs => {
@@ -126,9 +127,9 @@ export class FileSystem {
           // non utf8 file
         }
       }
-      // Convert plain ArrayBuffers to Buffers
-      if (typeof buffer !== 'string') {
-        buffer = Buffer.from(buffer)
+      // Convert plain ArrayBuffers to Uint8Arrays
+      if (typeof buffer !== 'string' && !(buffer instanceof Uint8Array)) {
+        buffer = new Uint8Array(buffer.buffer ? buffer.buffer : buffer)
       }
       return buffer
     } catch (err) {
@@ -282,14 +283,14 @@ export class FileSystem {
    *
    * @param {string} filename - The path to the symlink.
    * @param {Object} [opts={ encoding: 'buffer' }] - Options for reading the symlink.
-   * @returns {Promise<Buffer|null>} - The symlink target, or `null` if it doesn't exist.
+   * @returns {Promise<Uint8Array|null>} - The symlink target, or `null` if it doesn't exist.
    */
   async readlink(filename, opts = { encoding: 'buffer' }) {
     // Note: FileSystem.readlink returns a buffer by default
     // so we can dump it into GitObject.write just like any other file.
     try {
       const link = await this._readlink(filename, opts)
-      return Buffer.isBuffer(link) ? link : Buffer.from(link)
+      return link instanceof Uint8Array ? link : encodeUTF8(link)
     } catch (err) {
       if (err.code === 'ENOENT' || (err.code || '').includes('ENS')) {
         return null
@@ -302,10 +303,10 @@ export class FileSystem {
    * Write the contents of buffer to a symlink.
    *
    * @param {string} filename - The path to the symlink.
-   * @param {Buffer} buffer - The symlink target.
+   * @param {Uint8Array} buffer - The symlink target.
    * @returns {Promise<void>}
    */
   async writelink(filename, buffer) {
-    return this._symlink(buffer.toString('utf8'), filename)
+    return this._symlink(decodeUTF8(buffer), filename)
   }
 }

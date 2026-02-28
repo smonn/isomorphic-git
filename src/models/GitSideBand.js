@@ -20,6 +20,7 @@ If no 'side-band' capability was specified, the server will stream the
 entire packfile without multiplexing.
 */
 import { FIFO } from '../utils/FIFO.js'
+import { decodeUTF8 } from '../utils/uint8array.js'
 
 import { GitPktLine } from './GitPktLine.js'
 
@@ -60,7 +61,7 @@ export class GitSideBand {
           progress.write(error)
           packetlines.end()
           progress.end()
-          packfile.destroy(new Error(error.toString('utf8')))
+          packfile.destroy(new Error(decodeUTF8(error)))
           return
         }
         default: {
