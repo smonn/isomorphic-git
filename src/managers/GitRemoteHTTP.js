@@ -6,6 +6,7 @@ import { UserCanceledError } from '../errors/UserCanceledError.js'
 import { calculateBasicAuthHeader } from '../utils/calculateBasicAuthHeader.js'
 import { collect } from '../utils/collect.js'
 import { extractAuthFromUrl } from '../utils/extractAuthFromUrl.js'
+import { decodeUTF8 } from '../utils/uint8array.js'
 import { parseRefsAdResponse } from '../wire/parseRefsAdResponse.js'
 
 // Try to accommodate known CORS proxy implementations:
@@ -35,8 +36,8 @@ const updateHeaders = (headers, auth) => {
 const stringifyBody = async res => {
   try {
     // Some services provide a meaningful error message in the body of 403s like "token lacks the scopes necessary to perform this action"
-    const data = Buffer.from(await collect(res.body))
-    const response = data.toString('utf8')
+    const data = await collect(res.body)
+    const response = decodeUTF8(data)
     const preview =
       response.length < 256 ? response : response.slice(0, 256) + '...'
     return { preview, response, data }

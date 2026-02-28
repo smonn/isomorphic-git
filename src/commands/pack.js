@@ -5,6 +5,7 @@ import { _readObject as readObject } from '../storage/readObject.js'
 import { deflate } from '../utils/deflate.js'
 import { join } from '../utils/join.js'
 import { padHex } from '../utils/padHex.js'
+import { encodeUTF8, hexToUint8Array } from '../utils/uint8array.js'
 
 /**
  * @param {object} args
@@ -24,7 +25,12 @@ export async function _pack({
   const hash = new Hash()
   const outputStream = []
   function write(chunk, enc) {
-    const buff = Buffer.from(chunk, enc)
+    const buff =
+      chunk instanceof Uint8Array
+        ? chunk
+        : enc === 'hex'
+        ? hexToUint8Array(chunk)
+        : encodeUTF8(chunk)
     outputStream.push(buff)
     hash.update(buff)
   }
@@ -52,7 +58,7 @@ export async function _pack({
       length = length >>> 7
     }
     // Lastly, we can compress and write the object.
-    write(Buffer.from(await deflate(object)))
+    write(await deflate(object))
   }
   write('PACK')
   write('00000002', 'hex')

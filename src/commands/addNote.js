@@ -79,7 +79,7 @@ export async function _addNote({
 
   // Create the note blob
   if (typeof note === 'string') {
-    note = Buffer.from(note, 'utf8')
+    note = new TextEncoder().encode(note)
   }
   const noteOid = await writeObject({
     fs,

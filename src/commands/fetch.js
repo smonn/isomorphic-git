@@ -15,6 +15,7 @@ import { _readObject as readObject } from '../storage/readObject.js'
 import { abbreviateRef } from '../utils/abbreviateRef.js'
 import { collect } from '../utils/collect.js'
 import { emptyPackfile } from '../utils/emptyPackfile.js'
+import { toHex } from '../utils/toHex.js'
 import { filterCapabilities } from '../utils/filterCapabilities.js'
 import { forAwait } from '../utils/forAwait.js'
 import { join } from '../utils/join.js'
@@ -213,7 +214,7 @@ export async function _fetch({
   })
   // CodeCommit will hang up if we don't send a Content-Length header
   // so we can't stream the body.
-  const packbuffer = Buffer.from(await collect(packstream))
+  const packbuffer = await collect(packstream)
   const raw = await GitRemoteHTTP.connect({
     http,
     onProgress,
@@ -342,9 +343,9 @@ export async function _fetch({
       }
     })
   }
-  const packfile = Buffer.from(await collect(response.packfile))
+  const packfile = await collect(response.packfile)
   if (raw.body.error) throw raw.body.error
-  const packfileSha = packfile.slice(-20).toString('hex')
+  const packfileSha = toHex(packfile.slice(-20))
   const res = {
     defaultBranch: response.HEAD,
     fetchHead: response.FETCH_HEAD.oid,

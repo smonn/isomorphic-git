@@ -1,6 +1,7 @@
 // @ts-check
 import { collect } from '../utils/collect.js'
 import { join } from '../utils/join.js'
+import { toHex } from '../utils/toHex.js'
 
 import { _pack } from './pack.js'
 
@@ -24,8 +25,8 @@ import { _pack } from './pack.js'
  */
 export async function _packObjects({ fs, cache, gitdir, oids, write }) {
   const buffers = await _pack({ fs, cache, gitdir, oids })
-  const packfile = Buffer.from(await collect(buffers))
-  const packfileSha = packfile.slice(-20).toString('hex')
+  const packfile = await collect(buffers)
+  const packfileSha = toHex(packfile.slice(-20))
   const filename = `pack-${packfileSha}.pack`
   if (write) {
     await fs.write(join(gitdir, `objects/pack/${filename}`), packfile)
@@ -33,6 +34,6 @@ export async function _packObjects({ fs, cache, gitdir, oids, write }) {
   }
   return {
     filename,
-    packfile: new Uint8Array(packfile),
+    packfile,
   }
 }

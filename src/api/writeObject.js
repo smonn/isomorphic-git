@@ -9,6 +9,7 @@ import { GitTree } from '../models/GitTree.js'
 import { _writeObject } from '../storage/writeObject.js'
 import { discoverGitdir } from '../utils/discoverGitdir.js'
 import { join } from '../utils/join.js'
+import { encodeUTF8 } from '../utils/uint8array.js'
 
 /**
  * Write a git object directly
@@ -98,7 +99,11 @@ export async function writeObject({
           object = GitTree.from(object).toObject()
           break
         case 'blob':
-          object = Buffer.from(object, encoding)
+          if (typeof object === 'string') {
+            object = encodeUTF8(object)
+          } else if (!(object instanceof Uint8Array)) {
+            object = new Uint8Array(object)
+          }
           break
         case 'tag':
           object = GitAnnotatedTag.from(object).toObject()

@@ -5,6 +5,7 @@ import { readObjectLoose } from '../storage/readObjectLoose.js'
 import { readObjectPacked } from '../storage/readObjectPacked.js'
 import { inflate } from '../utils/inflate.js'
 import { shasum } from '../utils/shasum.js'
+import { encodeUTF8 } from '../utils/uint8array.js'
 
 /**
  * @param {object} args
@@ -30,7 +31,7 @@ export async function _readObject({
   // Note: I think the canonical git implementation must do this too because
   // `git cat-file -t 4b825dc642cb6eb9a060e54bf8d69288fbee4904` prints "tree" even in empty repos.
   if (oid === '4b825dc642cb6eb9a060e54bf8d69288fbee4904') {
-    result = { format: 'wrapped', object: Buffer.from(`tree 0\x00`) }
+    result = { format: 'wrapped', object: encodeUTF8(`tree 0\x00`) }
   }
   // Look for it in the loose object directory.
   if (!result) {
@@ -61,7 +62,7 @@ export async function _readObject({
 
   // All loose objects are deflated but the hard-coded empty tree is `wrapped` so we have to check if we need to inflate the object.
   if (result.format === 'deflated') {
-    result.object = Buffer.from(await inflate(result.object))
+    result.object = await inflate(result.object)
     result.format = 'wrapped'
   }
 
