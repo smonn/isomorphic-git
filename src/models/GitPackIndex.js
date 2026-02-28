@@ -7,6 +7,8 @@ import { applyDelta } from '../utils/applyDelta.js'
 import { listpack } from '../utils/git-list-pack.js'
 import { inflate } from '../utils/inflate.js'
 import { shasum } from '../utils/shasum.js'
+import { toHex } from '../utils/toHex.js'
+import { hexToUint8Array, concatUint8Arrays } from '../utils/uint8array.js'
 
 function decodeVarInt(reader) {
   const bytes = []
@@ -49,7 +51,7 @@ export class GitPackIndex {
 
   static async fromIdx({ idx, getExternalRefDelta }) {
     const reader = new BufferCursor(idx)
-    const magic = reader.slice(4).toString('hex')
+    const magic = toHex(reader.slice(4))
     // Check for IDX v2 magic number
     if (magic !== 'ff744f63') {
       return // undefined
@@ -71,7 +73,7 @@ export class GitPackIndex {
     const size = reader.readUInt32BE()
     const hashes = []
     for (let i = 0; i < size; i++) {
-      const hash = reader.slice(20).toString('hex')
+      const hash = toHex(reader.slice(20))
       hashes[i] = hash
     }
     reader.seek(reader.tell() + 4 * size)
@@ -81,7 +83,7 @@ export class GitPackIndex {
     for (let i = 0; i < size; i++) {
       offsets.set(hashes[i], reader.readUInt32BE())
     }
-    const packfileSha = reader.slice(20).toString('hex')
+    const packfileSha = toHex(reader.slice(20))
     return new GitPackIndex({
       hashes,
       crcs: {},
@@ -105,7 +107,7 @@ export class GitPackIndex {
     // Older packfiles do NOT use the shasum of the pack itself,
     // so it is recommended to just use whatever bytes are in the trailer.
     // Source: https://github.com/git/git/commit/1190a1acf800acdcfd7569f87ac1560e2d077414
-    const packfileSha = pack.slice(-20).toString('hex')
+    const packfileSha = toHex(pack.slice(-20))
 
     const hashes = []
     const crcs = {}
@@ -213,14 +215,14 @@ export class GitPackIndex {
   async toBuffer() {
     const buffers = []
     const write = (str, encoding) => {
-      buffers.push(Buffer.from(str, encoding))
+      buffers.push(encoding === 'hex' ? hexToUint8Array(str) : new TextEncoder().encode(str))
     }
     // Write out IDX v2 magic number
     write('ff744f63', 'hex')
     // Write out version number 2
     write('00000002', 'hex')
     // Write fanout table
-    const fanoutBuffer = new BufferCursor(Buffer.alloc(256 * 4))
+    const fanoutBuffer = new BufferCursor(new Uint8Array(256 * 4))
     for (let i = 0; i < 256; i++) {
       let count = 0
       for (const hash of this.hashes) {
@@ -234,13 +236,13 @@ export class GitPackIndex {
       write(hash, 'hex')
     }
     // Write out crcs
-    const crcsBuffer = new BufferCursor(Buffer.alloc(this.hashes.length * 4))
+    const crcsBuffer = new BufferCursor(new Uint8Array(this.hashes.length * 4))
     for (const hash of this.hashes) {
       crcsBuffer.writeUInt32BE(this.crcs[hash])
     }
     buffers.push(crcsBuffer.buffer)
     // Write out offsets
-    const offsetsBuffer = new BufferCursor(Buffer.alloc(this.hashes.length * 4))
+    const offsetsBuffer = new BufferCursor(new Uint8Array(this.hashes.length * 4))
     for (const hash of this.hashes) {
       offsetsBuffer.writeUInt32BE(this.offsets.get(hash))
     }
@@ -248,11 +250,9 @@ export class GitPackIndex {
     // Write out packfile checksum
     write(this.packfileSha, 'hex')
     // Write out shasum
-    const totalBuffer = Buffer.concat(buffers)
+    const totalBuffer = concatUint8Arrays(buffers)
     const sha = await shasum(totalBuffer)
-    const shaBuffer = Buffer.alloc(20)
-    shaBuffer.write(sha, 'hex')
-    return Buffer.concat([totalBuffer, shaBuffer])
+    return concatUint8Arrays([totalBuffer, hexToUint8Array(sha)])
   }
 
   async load({ pack }) {
@@ -322,12 +322,12 @@ export class GitPackIndex {
       ;({ object: base, type } = await this.readSlice({ start: baseOffset }))
     }
     if (type === 'ref_delta') {
-      const oid = reader.slice(20).toString('hex')
+      const oid = toHex(reader.slice(20))
       ;({ object: base, type } = await this.read({ oid }))
     }
     // Handle undeltified objects
     const buffer = raw.slice(reader.tell())
-    object = Buffer.from(await inflate(buffer))
+    object = await inflate(buffer)
     // Assert that the object length is as expected.
     if (object.byteLength !== length) {
       throw new InternalError(
@@ -335,7 +335,7 @@ export class GitPackIndex {
       )
     }
     if (base) {
-      object = Buffer.from(applyDelta(object, base))
+      object = applyDelta(object, base)
     }
     // Cache the result based on depth.
     if (this.readDepth > 3) {

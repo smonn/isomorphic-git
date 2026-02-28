@@ -4,6 +4,13 @@ import { BufferCursor } from '../utils/BufferCursor.js'
 import { comparePath } from '../utils/comparePath.js'
 import { normalizeStats } from '../utils/normalizeStats.js'
 import { shasum } from '../utils/shasum.js'
+import { toHex } from '../utils/toHex.js'
+import {
+  indexOf,
+  encodeUTF8,
+  hexToUint8Array,
+  concatUint8Arrays,
+} from '../utils/uint8array.js'
 
 // Extract 1-bit assume-valid, 1-bit extended flag, 2-bit merge state flag, 12-bit path length flag
 function parseCacheEntryFlags(bits) {
@@ -21,7 +28,7 @@ function renderCacheEntryFlags(entry) {
   flags.extended = false
   // 12-bit name length if the length is less than 0xFFF; otherwise 0xFFF
   // is stored in this field.
-  flags.nameLength = Math.min(Buffer.from(entry.path).length, 0xfff)
+  flags.nameLength = Math.min(encodeUTF8(entry.path).length, 0xfff)
   return (
     (flags.assumeValid ? 0b1000000000000000 : 0) +
     (flags.extended ? 0b0100000000000000 : 0) +
@@ -58,7 +65,7 @@ export class GitIndex {
   }
 
   static async from(buffer) {
-    if (Buffer.isBuffer(buffer)) {
+    if (buffer instanceof Uint8Array) {
       return GitIndex.fromBuffer(buffer)
     } else if (buffer === null) {
       return new GitIndex(null)
@@ -81,7 +88,7 @@ export class GitIndex {
 
     // Verify shasum after we ensured that the file has a magic number
     const shaComputed = await shasum(buffer.slice(0, -20))
-    const shaClaimed = buffer.slice(-20).toString('hex')
+    const shaClaimed = toHex(buffer.slice(-20))
     if (shaClaimed !== shaComputed) {
       throw new InternalError(
         `Invalid checksum in GitIndex buffer: expected ${shaClaimed} but saw ${shaComputed}`
@@ -106,11 +113,11 @@ export class GitIndex {
       entry.uid = reader.readUInt32BE()
       entry.gid = reader.readUInt32BE()
       entry.size = reader.readUInt32BE()
-      entry.oid = reader.slice(20).toString('hex')
+      entry.oid = toHex(reader.slice(20))
       const flags = reader.readUInt16BE()
       entry.flags = parseCacheEntryFlags(flags)
       // TODO: handle if (version === 3 && entry.flags.extended)
-      const pathlength = buffer.indexOf(0, reader.tell() + 1) - reader.tell()
+      const pathlength = indexOf(buffer, 0, reader.tell() + 1) - reader.tell()
       if (pathlength < 1) {
         throw new InternalError(`Got a path length of: ${pathlength}`)
       }
@@ -187,7 +194,7 @@ export class GitIndex {
       }
     }
     stats = normalizeStats(stats)
-    const bfilepath = Buffer.from(filepath)
+    const bfilepath = encodeUTF8(filepath)
     const entry = {
       ctimeSeconds: stats.ctimeSeconds,
       ctimeNanoseconds: stats.ctimeNanoseconds,
@@ -251,10 +258,10 @@ export class GitIndex {
   }
 
   static async _entryToBuffer(entry) {
-    const bpath = Buffer.from(entry.path)
+    const bpath = encodeUTF8(entry.path)
     // the fixed length + the filename + at least one null char => align by 8
     const length = Math.ceil((62 + bpath.length + 1) / 8) * 8
-    const written = Buffer.alloc(length)
+    const written = new Uint8Array(length)
     const writer = new BufferCursor(written)
     const stat = normalizeStats(entry)
     writer.writeUInt32BE(stat.ctimeSeconds)
@@ -274,7 +281,7 @@ export class GitIndex {
   }
 
   async toObject() {
-    const header = Buffer.alloc(12)
+    const header = new Uint8Array(12)
     const writer = new BufferCursor(header)
     writer.write('DIRC', 4, 'utf8')
     writer.writeUInt32BE(2)
@@ -293,9 +300,9 @@ export class GitIndex {
     }
     entryBuffers = await Promise.all(entryBuffers)
 
-    const body = Buffer.concat(entryBuffers)
-    const main = Buffer.concat([header, body])
+    const body = concatUint8Arrays(entryBuffers)
+    const main = concatUint8Arrays([header, body])
     const sum = await shasum(main)
-    return Buffer.concat([main, Buffer.from(sum, 'hex')])
+    return concatUint8Arrays([main, hexToUint8Array(sum)])
   }
 }
