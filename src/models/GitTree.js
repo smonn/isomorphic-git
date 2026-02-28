@@ -2,6 +2,14 @@ import { InternalError } from '../errors/InternalError.js'
 import { UnsafeFilepathError } from '../errors/UnsafeFilepathError.js'
 import { comparePath } from '../utils/comparePath.js'
 import { compareTreeEntryPath } from '../utils/compareTreeEntryPath.js'
+import { toHex } from '../utils/toHex.js'
+import {
+  indexOf,
+  decodeUTF8,
+  encodeUTF8,
+  hexToUint8Array,
+  concatUint8Arrays,
+} from '../utils/uint8array.js'
 
 /**
  *
@@ -28,29 +36,29 @@ function parseBuffer(buffer) {
   const _entries = []
   let cursor = 0
   while (cursor < buffer.length) {
-    const space = buffer.indexOf(32, cursor)
+    const space = indexOf(buffer, 32, cursor)
     if (space === -1) {
       throw new InternalError(
         `GitTree: Error parsing buffer at byte location ${cursor}: Could not find the next space character.`
       )
     }
-    const nullchar = buffer.indexOf(0, cursor)
+    const nullchar = indexOf(buffer, 0, cursor)
     if (nullchar === -1) {
       throw new InternalError(
         `GitTree: Error parsing buffer at byte location ${cursor}: Could not find the next null character.`
       )
     }
-    let mode = buffer.slice(cursor, space).toString('utf8')
+    let mode = decodeUTF8(buffer, cursor, space)
     if (mode === '40000') mode = '040000' // makes it line up neater in printed output
     const type = mode2type(mode)
-    const path = buffer.slice(space + 1, nullchar).toString('utf8')
+    const path = decodeUTF8(buffer, space + 1, nullchar)
 
     // Prevent malicious git repos from writing to "..\foo" on clone etc
     if (path.includes('\\') || path.includes('/')) {
       throw new UnsafeFilepathError(path)
     }
 
-    const oid = buffer.slice(nullchar + 1, nullchar + 21).toString('hex')
+    const oid = toHex(buffer.slice(nullchar + 1, nullchar + 21))
     cursor = nullchar + 21
     _entries.push({ mode, path, oid, type })
   }
@@ -83,7 +91,7 @@ function nudgeIntoShape(entry) {
 
 export class GitTree {
   constructor(entries) {
-    if (Buffer.isBuffer(entries)) {
+    if (entries instanceof Uint8Array) {
       this._entries = parseBuffer(entries)
     } else if (Array.isArray(entries)) {
       this._entries = entries.map(nudgeIntoShape)
@@ -109,14 +117,14 @@ export class GitTree {
     // Adjust the sort order to match git's
     const entries = [...this._entries]
     entries.sort(compareTreeEntryPath)
-    return Buffer.concat(
+    return concatUint8Arrays(
       entries.map(entry => {
-        const mode = Buffer.from(entry.mode.replace(/^0/, ''))
-        const space = Buffer.from(' ')
-        const path = Buffer.from(entry.path, 'utf8')
-        const nullchar = Buffer.from([0])
-        const oid = Buffer.from(entry.oid, 'hex')
-        return Buffer.concat([mode, space, path, nullchar, oid])
+        const mode = encodeUTF8(entry.mode.replace(/^0/, ''))
+        const space = new Uint8Array([32])
+        const path = encodeUTF8(entry.path)
+        const nullchar = new Uint8Array([0])
+        const oid = hexToUint8Array(entry.oid)
+        return concatUint8Arrays([mode, space, path, nullchar, oid])
       })
     )
   }

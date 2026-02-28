@@ -2,13 +2,14 @@ import { InternalError } from '../errors/InternalError.js'
 import { formatAuthor } from '../utils/formatAuthor.js'
 import { normalizeNewlines } from '../utils/normalizeNewlines.js'
 import { parseAuthor } from '../utils/parseAuthor.js'
+import { decodeUTF8, encodeUTF8 } from '../utils/uint8array.js'
 
 export class GitAnnotatedTag {
   constructor(tag) {
     if (typeof tag === 'string') {
       this._tag = tag
-    } else if (Buffer.isBuffer(tag)) {
-      this._tag = tag.toString('utf8')
+    } else if (tag instanceof Uint8Array) {
+      this._tag = decodeUTF8(tag)
     } else if (typeof tag === 'object') {
       this._tag = GitAnnotatedTag.render(tag)
     } else {
@@ -103,7 +104,7 @@ ${obj.gpgsig ? obj.gpgsig : ''}`
   }
 
   toObject() {
-    return Buffer.from(this._tag, 'utf8')
+    return encodeUTF8(this._tag)
   }
 
   static async sign(tag, sign, secretKey) {

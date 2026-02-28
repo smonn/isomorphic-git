@@ -4,13 +4,14 @@ import { indent } from '../utils/indent.js'
 import { normalizeNewlines } from '../utils/normalizeNewlines.js'
 import { outdent } from '../utils/outdent.js'
 import { parseAuthor } from '../utils/parseAuthor.js'
+import { decodeUTF8, encodeUTF8 } from '../utils/uint8array.js'
 
 export class GitCommit {
   constructor(commit) {
     if (typeof commit === 'string') {
       this._commit = commit
-    } else if (Buffer.isBuffer(commit)) {
-      this._commit = commit.toString('utf8')
+    } else if (commit instanceof Uint8Array) {
+      this._commit = decodeUTF8(commit)
     } else if (typeof commit === 'object') {
       this._commit = GitCommit.render(commit)
     } else {
@@ -32,7 +33,7 @@ export class GitCommit {
   }
 
   toObject() {
-    return Buffer.from(this._commit, 'utf8')
+    return encodeUTF8(this._commit)
   }
 
   // Todo: allow setting the headers and message

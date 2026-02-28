@@ -1,4 +1,5 @@
 import { InternalError } from '../errors/InternalError.js'
+import { indexOf, decodeUTF8 } from '../utils/uint8array.js'
 
 /**
  * Represents a Git object and provides methods to wrap and unwrap Git objects
@@ -31,15 +32,15 @@ export class GitObject {
   /**
    * Unwraps a Git object buffer into its type and raw object data.
    *
-   * @param {Buffer|Uint8Array} buffer - The buffer containing the wrapped Git object.
-   * @returns {{ type: string, object: Buffer }} An object containing the type and the raw object data.
+   * @param {Uint8Array} buffer - The buffer containing the wrapped Git object.
+   * @returns {{ type: string, object: Uint8Array }} An object containing the type and the raw object data.
    * @throws {InternalError} If the length specified in the header does not match the actual object length.
    */
   static unwrap(buffer) {
-    const s = buffer.indexOf(32) // first space
-    const i = buffer.indexOf(0) // first null value
-    const type = buffer.slice(0, s).toString('utf8') // get type of object
-    const length = buffer.slice(s + 1, i).toString('utf8') // get type of object
+    const s = indexOf(buffer, 32) // first space
+    const i = indexOf(buffer, 0) // first null value
+    const type = decodeUTF8(buffer, 0, s) // get type of object
+    const length = decodeUTF8(buffer, s + 1, i) // get length of object
     const actualLength = buffer.length - (i + 1)
     // verify length
     if (parseInt(length) !== actualLength) {
@@ -49,7 +50,7 @@ export class GitObject {
     }
     return {
       type,
-      object: Buffer.from(buffer.slice(i + 1)),
+      object: buffer.slice(i + 1),
     }
   }
 }
