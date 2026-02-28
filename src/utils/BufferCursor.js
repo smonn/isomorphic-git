@@ -1,8 +1,17 @@
 // Modeled after https://github.com/tjfontaine/node-buffercursor
 // but with the goal of being much lighter weight.
+import { decodeUTF8, encodeUTF8, hexToUint8Array } from './uint8array.js'
+import { toHex } from './toHex.js'
+
 export class BufferCursor {
   constructor(buffer) {
-    this.buffer = buffer
+    this.buffer =
+      buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer)
+    this._view = new DataView(
+      this.buffer.buffer,
+      this.buffer.byteOffset,
+      this.buffer.byteLength
+    )
     this._start = 0
   }
 
@@ -19,62 +28,70 @@ export class BufferCursor {
   }
 
   slice(n) {
-    const r = this.buffer.slice(this._start, this._start + n)
+    const r = this.buffer.subarray(this._start, this._start + n)
     this._start += n
     return r
   }
 
   toString(enc, length) {
-    const r = this.buffer.toString(enc, this._start, this._start + length)
+    const bytes = this.buffer.subarray(this._start, this._start + length)
     this._start += length
-    return r
+    if (enc === 'hex') return toHex(bytes)
+    return decodeUTF8(bytes)
   }
 
   write(value, length, enc) {
-    const r = this.buffer.write(value, this._start, length, enc)
+    if (enc === 'hex') {
+      const bytes = hexToUint8Array(value)
+      this.buffer.set(bytes, this._start)
+    } else {
+      const bytes = encodeUTF8(value)
+      this.buffer.set(bytes.subarray(0, length), this._start)
+    }
     this._start += length
-    return r
+    return length
   }
 
   copy(source, start, end) {
-    const r = source.copy(this.buffer, this._start, start, end)
-    this._start += r
-    return r
+    const slice =
+      start !== undefined || end !== undefined
+        ? source.subarray(start, end)
+        : source
+    this.buffer.set(slice, this._start)
+    this._start += slice.length
+    return slice.length
   }
 
   readUInt8() {
-    const r = this.buffer.readUInt8(this._start)
+    const r = this._view.getUint8(this._start)
     this._start += 1
     return r
   }
 
   writeUInt8(value) {
-    const r = this.buffer.writeUInt8(value, this._start)
+    this._view.setUint8(this._start, value)
     this._start += 1
-    return r
   }
 
   readUInt16BE() {
-    const r = this.buffer.readUInt16BE(this._start)
+    const r = this._view.getUint16(this._start, false)
     this._start += 2
     return r
   }
 
   writeUInt16BE(value) {
-    const r = this.buffer.writeUInt16BE(value, this._start)
+    this._view.setUint16(this._start, value, false)
     this._start += 2
-    return r
   }
 
   readUInt32BE() {
-    const r = this.buffer.readUInt32BE(this._start)
+    const r = this._view.getUint32(this._start, false)
     this._start += 4
     return r
   }
 
   writeUInt32BE(value) {
-    const r = this.buffer.writeUInt32BE(value, this._start)
+    this._view.setUint32(this._start, value, false)
     this._start += 4
-    return r
   }
 }

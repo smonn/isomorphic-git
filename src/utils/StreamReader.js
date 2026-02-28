@@ -1,12 +1,9 @@
 import { getIterator } from './getIterator.js'
+import { concatUint8Arrays } from './uint8array.js'
 
 // inspired by 'gartal' but lighter-weight and more battle-tested.
 export class StreamReader {
   constructor(stream) {
-    // TODO: fix usage in bundlers before Buffer dependency is removed #1855
-    if (typeof Buffer === 'undefined') {
-      throw new Error('Missing Buffer dependency')
-    }
     this.stream = getIterator(stream)
     this.buffer = null
     this.cursor = 0
@@ -76,10 +73,12 @@ export class StreamReader {
     let { done, value } = await this.stream.next()
     if (done) {
       this._ended = true
-      if (!value) return Buffer.alloc(0)
+      if (!value) return new Uint8Array(0)
     }
     if (value) {
-      value = Buffer.from(value)
+      if (!(value instanceof Uint8Array)) {
+        value = new Uint8Array(value)
+      }
     }
     return value
   }
@@ -111,7 +110,7 @@ export class StreamReader {
       if (this._ended) break
       buffers.push(nextbuffer)
     }
-    this.buffer = Buffer.concat(buffers)
+    this.buffer = concatUint8Arrays(buffers)
   }
 
   async _loadnext() {
