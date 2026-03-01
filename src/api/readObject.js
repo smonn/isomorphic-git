@@ -249,7 +249,7 @@ export async function readObject({
           // Here we consider returning a raw Buffer as the 'content' format
           // and returning a string as the 'parsed' format
           if (encoding) {
-            result.object = result.object.toString(encoding)
+            result.object = new TextDecoder(encoding).decode(result.object)
           } else {
             result.object = new Uint8Array(result.object)
             result.format = 'content'

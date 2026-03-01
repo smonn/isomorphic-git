@@ -1,17 +1,19 @@
-const encoder = new TextEncoder()
-const decoder = new TextDecoder()
+let _encoder
+let _decoder
 
 /** Encode a string to UTF-8 Uint8Array */
 export function encodeUTF8(str) {
-  return encoder.encode(str)
+  if (!_encoder) _encoder = new TextEncoder()
+  return _encoder.encode(str)
 }
 
 /** Decode a Uint8Array (or subarray) to a UTF-8 string */
 export function decodeUTF8(buf, start, end) {
+  if (!_decoder) _decoder = new TextDecoder()
   if (start !== undefined || end !== undefined) {
     buf = buf.subarray(start, end)
   }
-  return decoder.decode(buf)
+  return _decoder.decode(buf)
 }
 
 /** Convert a hex string to Uint8Array */

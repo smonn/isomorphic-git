@@ -94,7 +94,7 @@ describe('GitPackIndex', () => {
     const p = await GitPackIndex.fromPack({ pack })
     const idxbuffer = await p.toBuffer()
     expect(idxbuffer.byteLength).toBe(idx.byteLength)
-    expect(idxbuffer.equals(idx)).toBe(true)
+    expect(Buffer.compare(idxbuffer, idx)).toBe(0)
   })
   it('read undeltified object', async () => {
     const { fs, gitdir } = await makeFixture('test-GitPackIndex')
@@ -118,7 +118,7 @@ describe('GitPackIndex', () => {
     expect(type).toBe('commit')
     const oid = await shasum(GitObject.wrap({ type, object }))
     expect(oid).toBe('637c4e69d85e0dcc18898ec251377453d0891585')
-    expect(object.toString('utf8')).toMatchInlineSnapshot(`
+    expect(new TextDecoder().decode(object)).toMatchInlineSnapshot(`
       "tree cbd2a3d7e00a972faaf0ef59d9b421de9f1a7532
       parent fbd56b49d400a19ee185ae735417bdb34c084621
       parent 0b8faa11b353db846b40eb064dfb299816542a46
