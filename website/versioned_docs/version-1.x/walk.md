@@ -119,9 +119,9 @@ await entry.oid()
 
 ### WalkerEntry#content()
 
-Returns the file contents as a Buffer.
+Returns the file contents as a Uint8Array.
 
-`TREE` and `WORKDIR` walkers return a Buffer for `blob` entries and `undefined` for `tree` entries.
+`TREE` and `WORKDIR` walkers return a Uint8Array for `blob` entries and `undefined` for `tree` entries.
 
 `STAGE` walkers always return `undefined` since the file contents are never stored in the stage.
 

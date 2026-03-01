@@ -7,15 +7,15 @@ original_id: readNote
 
 Read the contents of a note
 
-| param          | type [= default]          | description                                            |
-| -------------- | ------------------------- | ------------------------------------------------------ |
-| [**fs**](./fs) | FsClient                  | a file system client                                   |
-| dir            | string                    | The [working tree](dir-vs-gitdir.md) directory path    |
-| **gitdir**     | string = join(dir,'.git') | The [git directory](dir-vs-gitdir.md) path             |
-| ref            | string                    | The notes ref to look under                            |
-| **oid**        | string                    | The SHA-1 object id of the object to get the note for. |
-| cache          | object                    | a [cache](cache.md) object                             |
-| return         | Promise\<Uint8Array\>     | Resolves successfully with note contents as a Buffer.  |
+| param          | type [= default]          | description                                               |
+| -------------- | ------------------------- | --------------------------------------------------------- |
+| [**fs**](./fs) | FsClient                  | a file system client                                      |
+| dir            | string                    | The [working tree](dir-vs-gitdir.md) directory path       |
+| **gitdir**     | string = join(dir,'.git') | The [git directory](dir-vs-gitdir.md) path                |
+| ref            | string                    | The notes ref to look under                               |
+| **oid**        | string                    | The SHA-1 object id of the object to get the note for.    |
+| cache          | object                    | a [cache](cache.md) object                                |
+| return         | Promise\<Uint8Array\>     | Resolves successfully with note contents as a Uint8Array. |
 
 
 ---

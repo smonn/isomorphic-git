@@ -54,7 +54,7 @@
   },
   "unpkg": "./index.umd.min.js",
   "bin": {
-    "isogit": "./cli.cjs"
+    "isogit": "cli.cjs"
   },
   "sideEffects": false,
   "engines": {
@@ -72,7 +72,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/isomorphic-git/isomorphic-git.git"
+    "url": "git+https://github.com/isomorphic-git/isomorphic-git.git"
   },
   "keywords": [
     "git",

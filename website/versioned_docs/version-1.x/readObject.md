@@ -32,7 +32,7 @@ Regarding `ReadObjectResult`:
 - `oid` will be the same as the `oid` argument unless the `filepath` argument is provided, in which case it will be the oid of the tree or blob being returned.
 - `type` of deflated objects is `'deflated'`, and `type` of wrapped objects is `'wrapped'`
 - `format` is usually, but not always, the format you requested. Packfiles do not store each object individually compressed so if you end up reading the object from a packfile it will be returned in format 'content' even if you requested 'deflated' or 'wrapped'.
-- `object` will be an actual Object if format is 'parsed' and the object is a commit, tree, or annotated tag. Blobs are still formatted as Buffers unless an encoding is provided in which case they'll be strings. If format is anything other than 'parsed', object will be a Buffer.
+- `object` will be an actual Object if format is 'parsed' and the object is a commit, tree, or annotated tag. Blobs are still formatted as Uint8Arrays unless an encoding is provided in which case they'll be strings. If format is anything other than 'parsed', object will be a Uint8Array.
 - `source` is the name of the packfile or loose object file where the object was found.
 
 The `format` parameter can have the following values:
