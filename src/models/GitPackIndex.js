@@ -215,7 +215,11 @@ export class GitPackIndex {
   async toBuffer() {
     const buffers = []
     const write = (str, encoding) => {
-      buffers.push(encoding === 'hex' ? hexToUint8Array(str) : new TextEncoder().encode(str))
+      buffers.push(
+        encoding === 'hex'
+          ? hexToUint8Array(str)
+          : new TextEncoder().encode(str)
+      )
     }
     // Write out IDX v2 magic number
     write('ff744f63', 'hex')
@@ -242,7 +246,9 @@ export class GitPackIndex {
     }
     buffers.push(crcsBuffer.buffer)
     // Write out offsets
-    const offsetsBuffer = new BufferCursor(new Uint8Array(this.hashes.length * 4))
+    const offsetsBuffer = new BufferCursor(
+      new Uint8Array(this.hashes.length * 4)
+    )
     for (const hash of this.hashes) {
       offsetsBuffer.writeUInt32BE(this.offsets.get(hash))
     }

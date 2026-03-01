@@ -1,12 +1,11 @@
 // Modeled after https://github.com/tjfontaine/node-buffercursor
 // but with the goal of being much lighter weight.
-import { decodeUTF8, encodeUTF8, hexToUint8Array } from './uint8array.js'
 import { toHex } from './toHex.js'
+import { decodeUTF8, encodeUTF8, hexToUint8Array } from './uint8array.js'
 
 export class BufferCursor {
   constructor(buffer) {
-    this.buffer =
-      buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer)
+    this.buffer = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer)
     this._view = new DataView(
       this.buffer.buffer,
       this.buffer.byteOffset,

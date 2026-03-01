@@ -15,14 +15,22 @@ export async function listpack(stream, onData) {
     throw new InternalError(`Invalid PACK header '${PACK}'`)
   }
 
-  let versionBuf = await reader.read(4)
-  const version = new DataView(versionBuf.buffer, versionBuf.byteOffset, 4).getUint32(0, false)
+  const versionBuf = await reader.read(4)
+  const version = new DataView(
+    versionBuf.buffer,
+    versionBuf.byteOffset,
+    4
+  ).getUint32(0, false)
   if (version !== 2) {
     throw new InternalError(`Invalid packfile version: ${version}`)
   }
 
-  let numObjectsBuf = await reader.read(4)
-  let numObjects = new DataView(numObjectsBuf.buffer, numObjectsBuf.byteOffset, 4).getUint32(0, false)
+  const numObjectsBuf = await reader.read(4)
+  let numObjects = new DataView(
+    numObjectsBuf.buffer,
+    numObjectsBuf.byteOffset,
+    4
+  ).getUint32(0, false)
   // If (for some godforsaken reason) this is an empty packfile, abort now.
   if (numObjects < 1) return
 

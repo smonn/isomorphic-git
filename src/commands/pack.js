@@ -29,8 +29,8 @@ export async function _pack({
       chunk instanceof Uint8Array
         ? chunk
         : enc === 'hex'
-        ? hexToUint8Array(chunk)
-        : encodeUTF8(chunk)
+          ? hexToUint8Array(chunk)
+          : encodeUTF8(chunk)
     outputStream.push(buff)
     hash.update(buff)
   }

@@ -51,7 +51,11 @@ Examples (as C-style strings):
 */
 import { StreamReader } from '../utils/StreamReader.js'
 import { padHex } from '../utils/padHex.js'
-import { encodeUTF8, decodeUTF8, concatUint8Arrays } from '../utils/uint8array.js'
+import {
+  encodeUTF8,
+  decodeUTF8,
+  concatUint8Arrays,
+} from '../utils/uint8array.js'
 
 // I'm really using this more as a namespace.
 // There's not a lot of "state" in a pkt-line
