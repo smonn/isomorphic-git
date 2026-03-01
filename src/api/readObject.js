@@ -249,7 +249,14 @@ export async function readObject({
           // Here we consider returning a raw Buffer as the 'content' format
           // and returning a string as the 'parsed' format
           if (encoding) {
-            result.object = new TextDecoder(encoding).decode(result.object)
+            // Map Node.js encoding names to TextDecoder-compatible labels
+            const decoderEncoding =
+              encoding === 'ascii' || encoding === 'latin1'
+                ? 'iso-8859-1'
+                : encoding
+            result.object = new TextDecoder(decoderEncoding).decode(
+              result.object
+            )
           } else {
             result.object = new Uint8Array(result.object)
             result.format = 'content'

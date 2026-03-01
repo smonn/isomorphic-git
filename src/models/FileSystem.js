@@ -127,9 +127,12 @@ export class FileSystem {
           // non utf8 file
         }
       }
-      // Convert plain ArrayBuffers to Uint8Arrays
+      // Convert plain ArrayBuffers or other TypedArrays to Uint8Arrays
       if (typeof buffer !== 'string' && !(buffer instanceof Uint8Array)) {
-        buffer = new Uint8Array(buffer.buffer ? buffer.buffer : buffer)
+        // Use new Uint8Array(typedArray) which copies correctly, rather than
+        // new Uint8Array(buffer.buffer) which would wrap the entire underlying
+        // ArrayBuffer (e.g. the Node.js Buffer pool).
+        buffer = new Uint8Array(buffer)
       }
       return buffer
     } catch (err) {

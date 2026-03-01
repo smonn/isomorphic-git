@@ -9,7 +9,7 @@ import { GitTree } from '../models/GitTree.js'
 import { _writeObject } from '../storage/writeObject.js'
 import { discoverGitdir } from '../utils/discoverGitdir.js'
 import { join } from '../utils/join.js'
-import { encodeUTF8 } from '../utils/uint8array.js'
+import { encodeUTF8, hexToUint8Array } from '../utils/uint8array.js'
 
 /**
  * Write a git object directly
@@ -100,7 +100,17 @@ export async function writeObject({
           break
         case 'blob':
           if (typeof object === 'string') {
-            object = encodeUTF8(object)
+            if (encoding === 'hex') {
+              object = hexToUint8Array(object)
+            } else if (encoding === 'base64') {
+              const binary = atob(object)
+              object = new Uint8Array(binary.length)
+              for (let i = 0; i < binary.length; i++) {
+                object[i] = binary.charCodeAt(i)
+              }
+            } else {
+              object = encodeUTF8(object)
+            }
           } else if (!(object instanceof Uint8Array)) {
             object = new Uint8Array(object)
           }
