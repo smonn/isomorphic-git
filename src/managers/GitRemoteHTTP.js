@@ -31,7 +31,7 @@ const updateHeaders = (headers, auth) => {
 /**
  * @param {GitHttpResponse} res
  *
- * @returns {{ preview: string, response: string, data: Buffer }}
+ * @returns {{ preview: string, response: string, data: Uint8Array }}
  */
 const stringifyBody = async res => {
   try {
