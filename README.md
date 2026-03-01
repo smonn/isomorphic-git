@@ -1,3 +1,11 @@
+> **Note:** This is `@smonn/isomorphic-git`, an experimental fork of
+> [`isomorphic-git`](https://github.com/isomorphic-git/isomorphic-git) that
+> replaces all internal uses of Node.js `Buffer` with `Uint8Array`, making
+> the library natively browser-compatible without Buffer polyfills. The
+> refactoring was implemented with [Claude Code](https://claude.ai/claude-code).
+> All existing tests pass with minor adjustments to account for the
+> `Buffer` to `Uint8Array` change. **Use with caution in production.**
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/isomorphic-git/isomorphic-git/main/website/static/img/isomorphic-git-logo.svg?sanitize=true" alt="" height="150"/>
 </p>
