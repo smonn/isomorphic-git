@@ -39,7 +39,7 @@ import { join } from '../utils/join.js'
  *   oid: commitOid,
  *   filepath: 'README.md'
  * })
- * console.log(Buffer.from(blob).toString('utf8'))
+ * console.log(new TextDecoder().decode(blob))
  *
  */
 export async function readBlob({

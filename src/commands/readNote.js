@@ -13,7 +13,7 @@ import { _readBlob } from './readBlob.js'
  * @param {string} [args.ref] - The notes ref to look under
  * @param {string} args.oid
  *
- * @returns {Promise<Uint8Array>} Resolves successfully with note contents as a Buffer.
+ * @returns {Promise<Uint8Array>} Resolves successfully with note contents as a Uint8Array.
  */
 
 export async function _readNote({

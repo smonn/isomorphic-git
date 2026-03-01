@@ -18,7 +18,7 @@ import { join } from '../utils/join.js'
  * @param {string} args.oid - The SHA-1 object id of the object to get the note for.
  * @param {object} [args.cache] - a [cache](cache.md) object
  *
- * @returns {Promise<Uint8Array>} Resolves successfully with note contents as a Buffer.
+ * @returns {Promise<Uint8Array>} Resolves successfully with note contents as a Uint8Array.
  */
 
 export async function readNote({

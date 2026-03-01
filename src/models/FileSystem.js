@@ -113,7 +113,7 @@ export class FileSystem {
    *
    * @param {string} filepath - The path to the file.
    * @param {Object} [options] - Options for reading the file.
-   * @returns {Promise<Buffer|string|null>} - The file contents, or `null` if the file doesn't exist.
+   * @returns {Promise<Uint8Array|string|null>} - The file contents, or `null` if the file doesn't exist.
    */
   async read(filepath, options = {}) {
     try {
@@ -144,7 +144,7 @@ export class FileSystem {
    * Write a file (creating missing directories if need be) without throwing errors.
    *
    * @param {string} filepath - The path to the file.
-   * @param {Buffer|Uint8Array|string} contents - The data to write.
+   * @param {Uint8Array|string} contents - The data to write.
    * @param {Object|string} [options] - Options for writing the file.
    * @returns {Promise<void>}
    */
