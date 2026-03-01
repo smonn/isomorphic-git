@@ -998,6 +998,17 @@
       "contributions": [
         "security"
       ]
+    },
+    {
+      "login": "smonn",
+      "name": "Simon Ingeson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44818?v=4",
+      "profile": "https://www.smonn.se/",
+      "contributions": [
+        "code",
+        "doc",
+        "test"
+      ]
     }
   ],
   "commitConvention": "angular"
