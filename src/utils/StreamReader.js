@@ -40,7 +40,7 @@ export class StreamReader {
       if (this._ended) return
     }
     this._moveCursor(this.buffer.length)
-    return this.buffer.slice(this.undoCursor, this.cursor)
+    return this.buffer.subarray(this.undoCursor, this.cursor)
   }
 
   async read(n) {
@@ -51,7 +51,7 @@ export class StreamReader {
       await this._accumulate(n)
     }
     this._moveCursor(n)
-    return this.buffer.slice(this.undoCursor, this.cursor)
+    return this.buffer.subarray(this.undoCursor, this.cursor)
   }
 
   async skip(n) {
@@ -86,7 +86,7 @@ export class StreamReader {
   _trim() {
     // Throw away parts of the buffer we don't need anymore
     // assert(this.cursor <= this.buffer.length)
-    this.buffer = this.buffer.slice(this.undoCursor)
+    this.buffer = this.buffer.subarray(this.undoCursor)
     this.cursor -= this.undoCursor
     this._discardedBytes += this.undoCursor
     this.undoCursor = 0

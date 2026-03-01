@@ -50,7 +50,7 @@ export class GitObject {
     }
     return {
       type,
-      object: buffer.slice(i + 1),
+      object: buffer.subarray(i + 1),
     }
   }
 }

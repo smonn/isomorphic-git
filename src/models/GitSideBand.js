@@ -47,17 +47,17 @@ export class GitSideBand {
       switch (line[0]) {
         case 1: {
           // pack data
-          packfile.write(line.slice(1))
+          packfile.write(line.subarray(1))
           break
         }
         case 2: {
           // progress message
-          progress.write(line.slice(1))
+          progress.write(line.subarray(1))
           break
         }
         case 3: {
           // fatal error message just before stream aborts
-          const error = line.slice(1)
+          const error = line.subarray(1)
           progress.write(error)
           packetlines.end()
           progress.end()

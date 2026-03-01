@@ -24,5 +24,5 @@ export function isBinary(buffer) {
   const MAX_XDIFF_SIZE = 1024 * 1024 * 1023
   if (buffer.length > MAX_XDIFF_SIZE) return true
   // check for null characters in the first 8000 bytes
-  return buffer.slice(0, 8000).some(value => value === 0)
+  return buffer.subarray(0, 8000).some(value => value === 0)
 }

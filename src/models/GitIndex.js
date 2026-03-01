@@ -87,8 +87,8 @@ export class GitIndex {
     }
 
     // Verify shasum after we ensured that the file has a magic number
-    const shaComputed = await shasum(buffer.slice(0, -20))
-    const shaClaimed = toHex(buffer.slice(-20))
+    const shaComputed = await shasum(buffer.subarray(0, buffer.length - 20))
+    const shaClaimed = toHex(buffer.subarray(buffer.length - 20))
     if (shaClaimed !== shaComputed) {
       throw new InternalError(
         `Invalid checksum in GitIndex buffer: expected ${shaClaimed} but saw ${shaComputed}`

@@ -58,7 +58,7 @@ function parseBuffer(buffer) {
       throw new UnsafeFilepathError(path)
     }
 
-    const oid = toHex(buffer.slice(nullchar + 1, nullchar + 21))
+    const oid = toHex(buffer.subarray(nullchar + 1, nullchar + 21))
     cursor = nullchar + 21
     _entries.push({ mode, path, oid, type })
   }

@@ -345,7 +345,7 @@ export async function _fetch({
   }
   const packfile = await collect(response.packfile)
   if (raw.body.error) throw raw.body.error
-  const packfileSha = toHex(packfile.slice(-20))
+  const packfileSha = toHex(packfile.subarray(packfile.length - 20))
   const res = {
     defaultBranch: response.HEAD,
     fetchHead: response.FETCH_HEAD.oid,

@@ -107,7 +107,7 @@ export class GitPackIndex {
     // Older packfiles do NOT use the shasum of the pack itself,
     // so it is recommended to just use whatever bytes are in the trailer.
     // Source: https://github.com/git/git/commit/1190a1acf800acdcfd7569f87ac1560e2d077414
-    const packfileSha = toHex(pack.slice(-20))
+    const packfileSha = toHex(pack.subarray(pack.length - 20))
 
     const hashes = []
     const crcs = {}
@@ -157,7 +157,7 @@ export class GitPackIndex {
       const end =
         i + 1 === offsetArray.length ? pack.byteLength - 20 : offsetArray[i + 1]
       const o = offsetToObject[start]
-      const crc = crc32.buf(pack.slice(start, end)) >>> 0
+      const crc = crc32.buf(pack.subarray(start, end)) >>> 0
       o.end = end
       o.crc = crc
     }
@@ -300,7 +300,7 @@ export class GitPackIndex {
         'Tried to read from a GitPackIndex with no packfile loaded into memory'
       )
     }
-    const raw = (await this.pack).slice(start)
+    const raw = (await this.pack).subarray(start)
     const reader = new BufferCursor(raw)
     const byte = reader.readUInt8()
     // Object type is encoded in bits 654
@@ -332,7 +332,7 @@ export class GitPackIndex {
       ;({ object: base, type } = await this.read({ oid }))
     }
     // Handle undeltified objects
-    const buffer = raw.slice(reader.tell())
+    const buffer = raw.subarray(reader.tell())
     object = await inflate(buffer)
     // Assert that the object length is as expected.
     if (object.byteLength !== length) {

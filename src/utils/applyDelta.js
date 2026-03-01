@@ -79,7 +79,7 @@ function readOp(reader, source) {
     let size = readCompactLE(reader, (byte & SIZE) >> 4, 3)
     // Yup. They really did this optimization.
     if (size === 0) size = 0x10000
-    return source.slice(offset, offset + size)
+    return source.subarray(offset, offset + size)
   } else {
     // insert
     return reader.slice(byte)
